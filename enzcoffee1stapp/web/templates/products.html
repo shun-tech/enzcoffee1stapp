@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>商品一覧</title>
+</head>
+<body>
+    <h1>商品一覧</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>名前</th>
+            <th>価格</th>
+        </tr>
+        {{range .}}
+        <tr>
+            <td>{{.ID}}</td>
+            <td>{{.Name}}</td>
+            <td>{{.Price}}</td>
+        </tr>
+        {{end}}
+    </table>
+    <button onclick="location.href='/'">戻る</button>
+</body>
+</html>
