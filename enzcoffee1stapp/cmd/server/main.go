@@ -27,8 +27,8 @@ func init() {
 }
 
 func main() {
-        // 環境変数を設定
-    os.Setenv("WEB_DIR", "/Users/shuntamorioka/workspace/enzcoffee1stapp/web/templates/")
+    // 環境変数を設定
+    os.Setenv("WEB_DIR", "/Users/shuntamorioka/workspace/enzcoffee1stapp/web/")
     // 環境変数からウェブディレクトリのパスを取得
     webDir := os.Getenv("WEB_DIR")
 
@@ -40,13 +40,13 @@ func main() {
     http.Handle("/static/", http.StripPrefix("/static/", fs))
 
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        http.ServeFile(w, r, webDir + "web/index.html")
+        http.ServeFile(w, r, webDir + "templates/web/index.html")
     })
     http.HandleFunc("/success", func(w http.ResponseWriter, r *http.Request) {
-        http.ServeFile(w, r, webDir + "result/success.html")
+        http.ServeFile(w, r, webDir + "templates/result/success.html")
     })
     http.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
-        http.ServeFile(w, r, webDir + "result/error.html")
+        http.ServeFile(w, r, webDir + "templates/result/error.html")
     })
     http.HandleFunc("/add-product", func(w http.ResponseWriter, r *http.Request) {
         if r.Method != "POST" {
@@ -67,12 +67,13 @@ func main() {
         http.Redirect(w, r, "result/success.html", http.StatusFound)
     })
     http.HandleFunc("/products", productsHandler)
+    http.HandleFunc("/products/delete-product", deleteProductHandler)
 
     log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func productsHandler(w http.ResponseWriter, r *http.Request) {
-    // 環境変数からウェブディレクトリのパスを取得
+    os.Setenv("WEB_DIR", "/Users/shuntamorioka/workspace/enzcoffee1stapp/web/")
     webDir := os.Getenv("WEB_DIR")
     if webDir == "" {
         log.Fatal("WEB_DIR environment variable not set")
@@ -85,7 +86,7 @@ func productsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    tmpl, err := template.ParseFiles(webDir + "web/products.html")
+    tmpl, err := template.ParseFiles(webDir + "templates/web/products.html")
     if err != nil {
         log.Printf("Error parsing template: %v", err)
         http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -96,5 +97,26 @@ func productsHandler(w http.ResponseWriter, r *http.Request) {
     if err != nil {
         log.Printf("Error executing template: %v", err)
         http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+    }
+}
+
+func deleteProductHandler(w http.ResponseWriter, r *http.Request) {
+    os.Setenv("WEB_DIR", "/Users/shuntamorioka/workspace/enzcoffee1stapp/web/")
+    webDir := os.Getenv("WEB_DIR")
+    if r.Method == "POST" {
+        idStr := r.FormValue("id")
+        id, err := strconv.Atoi(idStr)
+        if err != nil {
+            http.Redirect(w, r, webDir + "result/error.html", http.StatusFound)
+            return
+        }
+        err = repository.DeleteProduct(id)
+        if err != nil {
+            http.Redirect(w, r, webDir +"result/error.html", http.StatusFound)
+        } else {
+            http.Redirect(w, r, webDir +"result/success.html", http.StatusFound)
+        }
+    } else {
+        http.Redirect(w, r, webDir +"/products.html", http.StatusFound)
     }
 }
